@@ -23,6 +23,8 @@ go env -w GOPROXY="$GO_PROXY_CN","$GO_PROXY_ALIYUN",direct
 # the source tree root.
 make -f elasticdl/Makefile
 
+echo "GOPATH: "
+echo $GOPATH
 # TODO(QiJune): How about we put the go.mod file in elasticdl/elasticdl/go/ in
 # the Git repo, so we don't need to create it at building time?
 (

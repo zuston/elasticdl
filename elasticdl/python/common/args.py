@@ -103,8 +103,10 @@ def print_args(args, exclude_args=[], groups=None):
         for (key, value) in args.__dict__.items()
         if key not in dedup and key not in exclude_args
     ]
+    print("=======================================")
     for key, value in other_options:
         logger.info("%s = %s", key, value)
+    print("=======================================")
 
 
 def _build_master_args_parser():

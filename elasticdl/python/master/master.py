@@ -41,37 +41,37 @@ class Master(object):
         self._exit_code = 0
 
     def prepare(self):
-        self.validate()
+        # self.validate()
         # Composite the components
-        if self.task_manager and self.pod_manager:
-            self.task_manager.set_task_timeout_callback(
-                self.pod_manager._remove_worker
-            )
-        if self.pod_manager:
-            self._set_command_in_pod_manager()
-            # Add PodEventCallbacks for the listeners of Pod events.
-            if self.task_manager:
-                self.pod_manager.add_pod_event_callback(
-                    TaskRescheduleCallback(self.task_manager)
-                )
-            if self.rendezvous_server:
-                self.pod_manager.add_pod_event_callback(
-                    RendezvousServiceRefreshCallback(self.rendezvous_server)
-                )
-            if self._is_tfv1_ps_strategy_custom_training():
-                self.pod_manager.add_pod_event_callback(
-                    TFV1PSStrategyTrainLoopMonitorCallback(self)
-                )
+        # if self.task_manager and self.pod_manager:
+        #     self.task_manager.set_task_timeout_callback(
+        #         self.pod_manager._remove_worker
+        #     )
+        # if self.pod_manager:
+        #     self._set_command_in_pod_manager()
+        #     # Add PodEventCallbacks for the listeners of Pod events.
+        #     if self.task_manager:
+        #         self.pod_manager.add_pod_event_callback(
+        #             TaskRescheduleCallback(self.task_manager)
+        #         )
+        #     if self.rendezvous_server:
+        #         self.pod_manager.add_pod_event_callback(
+        #             RendezvousServiceRefreshCallback(self.rendezvous_server)
+        #         )
+        #     if self._is_tfv1_ps_strategy_custom_training():
+        #         self.pod_manager.add_pod_event_callback(
+        #             TFV1PSStrategyTrainLoopMonitorCallback(self)
+        #         )
 
         # Start the components one by one
         if self.task_manager:
             self.task_manager.start()
-        if self.rendezvous_server:
-            self.rendezvous_server.start()
-        if self.pod_manager:
-            self.pod_manager.start()
-        if self.elasticdl_job_service:
-            self.elasticdl_job_service.start()
+        # if self.rendezvous_server:
+        #     self.rendezvous_server.start()
+        # if self.pod_manager:
+        #     self.pod_manager.start()
+        # if self.elasticdl_job_service:
+        #     self.elasticdl_job_service.start()
 
         # Start the master GRPC server
         logger.info("Starting master RPC server")
@@ -167,6 +167,7 @@ class Master(object):
             self.task_manager = None
 
     def create_rendezvous_server_if_needed(self, args):
+        print("strategy: {}".format(args.distribution_strategy))
         if args.distribution_strategy != DistributionStrategy.ALLREDUCE:
             self.rendezvous_server = None
         else:

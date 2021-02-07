@@ -433,6 +433,12 @@ def add_common_params(parser):
 
 def add_common_args_between_master_and_worker(parser):
     parser.add_argument(
+        "--worker_id",
+    )
+    parser.add_argument(
+        "--master_addr",
+    )
+    parser.add_argument(
         "--minibatch_size",
         help="Minibatch size for worker",
         type=int,
