@@ -20,7 +20,7 @@ import (
 	"os"
 	"time"
 
-	"elasticdl.org/elasticdl/pkg/common"
+	//"elasticdl.org/elasticdl/pkg/common"
 	"elasticdl.org/elasticdl/pkg/ps"
 )
 
@@ -49,23 +49,25 @@ func main() {
 	flag.Parse()
 	address := fmt.Sprintf("%s:%d", os.Getenv("MY_POD_IP"), *port)
 	serverDone := make(chan bool)
-	grpcServer := ps.NewServer(*psID, *optType, *optArgs, *masterAddr, *evaluationSteps,
+	ps.NewServer(*psID, *optType, *optArgs, *masterAddr, *evaluationSteps,
 		*checkpointDirForInit, *checkpointDir, *checkpointSteps,
 		*keepCheckpointMax, *numPsPods, *lrStalenessModulation).Run(address, *numWorkers, serverDone)
 	log.Println("PS service started at ", address)
-	masterPodName := common.GetMasterPodName(*jobName)
-	clientSet := common.CreateClientSet()
+	//masterPodName := common.GetMasterPodName(*jobName)
+	//clientSet := common.CreateClientSet()
 	done := false
 	for {
 		select {
 		case done = <-serverDone:
 			break
 		default:
-			if common.PodFinished(clientSet, *namespace, masterPodName) {
-				grpcServer.Stop()
-			}
+			//if common.PodFinished(clientSet, *namespace, masterPodName) {
+			//	grpcServer.Stop()
+			//}
+			log.Println("Checking, interval is 30s")
 			time.Sleep(time.Second * 30)
 		}
+		// if done is true, it will break.
 		if done {
 			break
 		}

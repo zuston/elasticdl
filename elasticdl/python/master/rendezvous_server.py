@@ -26,6 +26,7 @@ try:
     _HOROVOD_INSTALLED = True
 except ImportError:
     _HOROVOD_INSTALLED = False
+    print("not installed horovod...")
 
 _WORKER_SLOT_NUMBER = 1
 _HOST_SEP = ","

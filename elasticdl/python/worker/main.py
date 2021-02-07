@@ -40,18 +40,21 @@ def get_master_addr():
 def main():
     args = parse_worker_args()
     logger = log_utils.get_logger(__name__)
-    master_addr = get_master_addr()
-    worker_id = get_worker_id()
+    master_addr = args.master_addr
+    worker_id = int(args.worker_id)
 
     logger.info("Starting worker %d", worker_id)
 
     master_client = MasterClient(build_channel(master_addr), worker_id)
 
+    logger.info("Building PS connection....")
     ps_client = (
         build_ps_client(args.ps_addrs, logger)
         if args.distribution_strategy == DistributionStrategy.PARAMETER_SERVER
         else None
     )
+
+    logger.info("Have builded PS.")
 
     worker = Worker(
         args,
