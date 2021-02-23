@@ -213,6 +213,7 @@ class ParameterServerTrainer(Trainer):
 
         self._ps_client.push_embedding_table_infos(infos)
 
+    # 获取到当前 edl embedding 层的 id 和 name
     def _collect_edl_embedding_name_values(self):
         """
         Collect the information of ElasticDL customized
@@ -302,6 +303,8 @@ class ParameterServerTrainer(Trainer):
         return self._model_version
 
     def init_variables_if_need(self, features, labels):
+        # 事实上，这边两个判断是不相关的。明明可以拆开来，提高效率的
+        # todo: 优化下，拆分开。
         if self._need_embedding_layer_check or not self._var_created:
             self._run_model_call_before_training(features)
 
@@ -375,6 +378,7 @@ class ParameterServerTrainer(Trainer):
         """
         if not train_with_local_model:
             self._get_model()
+
         if self._train_eagerly:
             loss, grads = self._training_process_eagerly(features, labels)
         else:

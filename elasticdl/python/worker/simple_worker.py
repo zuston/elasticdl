@@ -1,16 +1,3 @@
-# Copyright 2020 The ElasticDL Authors. All rights reserved.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
 import traceback
 from distutils.version import LooseVersion
@@ -44,8 +31,6 @@ DEFAULT_STEPS_TO_CHECK_RENDEZVOUS = 20
 
 _IS_TF2 = LooseVersion(tf.__version__) >= LooseVersion("2.0.0")
 
-import tensorboard.program as tb_program
-tb_program.TensorBoard.configure()
 
 class Worker(object):
     """ElasticDL worker"""
@@ -491,9 +476,13 @@ class Worker(object):
         """
         Only evaluate the model on the worker.
         """
-        evaluation_task_executed = False
+
+        # 1. get the latest checkpoint to restore model
+        # 2. evaluate it using the evaluation dataset
+
         with tf.device("/device:cpu:0"):
-            dataset = self._task_data_service.get_eval_dataset()
+            # dataset = self._task_data_service.get_eval_dataset()
+            dataset = self._getStaticShard()
 
         dataset = self._feed(
             dataset,

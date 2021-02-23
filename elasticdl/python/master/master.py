@@ -28,7 +28,10 @@ from elasticdl.python.master.servicer import create_master_service
 from elasticdl.python.master.task_manager import TaskManager
 from elasticdl_client.common.constants import DistributionStrategy
 
-
+"""
+对 master 进行拆分更改
+去除掉弹性功能，任务启动管理功能
+"""
 class Master(object):
     def __init__(self, args):
         self.create_pod_manager_if_needed(args)

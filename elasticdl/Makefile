@@ -26,3 +26,8 @@ kernel:
 
 clean:
 	rm -rf ${CAPI_DIR}/*.o ${CAPI_DIR}/*.a
+
+
+g++ -O3 -std=c++11 pkg/kernel/capi/kernel_api.cc -c -o pkg/kernel/capi/libkernel_api.o
+
+ar crv pkg/kernel/capi/libkernel_api.a pkg/kernel/capi/libkernel_api.o

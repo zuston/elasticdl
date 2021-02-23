@@ -249,6 +249,7 @@ def get_non_embedding_trainable_vars(model, embedding_layers):
     non_embedding_trainable_vars = []
     for var in model.trainable_variables:
         is_embedding_item = False
+        # 需要优化。。。。
         for embedding_item in embedding_items:
             if var is embedding_item:
                 is_embedding_item = True

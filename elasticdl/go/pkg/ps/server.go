@@ -108,7 +108,10 @@ func NewServer(ID int, optType string, optArgs string, masterAddr string,
 		log.Fatalf("failed to create PS server: %v", err)
 	}
 	ps.ID = ID
+	log.Println("starting connect master...")
 	ps.masterClient = createMasterClient(masterAddr)
+	log.Println("end connect master...")
+
 	ps.evaluationStep = evaluationStep
 	ps.checkpointDirForInit = checkpointDirForInit
 	ps.checkpointDir = checkpointDir
