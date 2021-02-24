@@ -100,6 +100,8 @@ class Worker(object):
             self._init_callbacks(args)
             self._init_trainer(args)
 
+        # todo: [PS-SLIM] Add specific variables
+
     def _init_model_from_args(self, args):
         """
         Please refer to elastic/python/common/args.py for more
@@ -321,6 +323,91 @@ class Worker(object):
             raise ex
         return err_msg
 
+    def _get_static_data_shard(self):
+        """
+        hard code to static shard.
+        """
+        worker_number = self._args.num_workers
+        worker_id = int(self._args.worker_id)
+
+        self.logger.info("worker number: " + str(worker_number))
+        self.logger.info("worker id    : " + str(worker_id))
+
+        def get_mnist_dataset(batch_size):
+            (
+                (x_train, y_train),
+                (x_test, y_test),
+            ) = tf.keras.datasets.mnist.load_data()
+            x_train = tf.convert_to_tensor(x_train, dtype=tf.float32) / 255.0
+            y_train = tf.convert_to_tensor(y_train, dtype=tf.int32)
+
+            x_test = tf.convert_to_tensor(x_test, dtype=tf.float32) / 255.0
+            y_test = tf.convert_to_tensor(y_test, dtype=tf.int32)
+
+            db = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+            db = db.shard(int(worker_number), int(worker_id))
+            db = db.batch(batch_size).repeat(2)
+
+            test_db = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+            test_db = test_db.shard(int(worker_number), int(worker_id))
+            test_db = test_db.batch(batch_size)
+
+            return db, test_db
+
+        # todo: Need to shard test data.
+        return get_mnist_dataset(self._minibatch_size)
+
+    def _train_only(self):
+        """
+        implement train only...
+        """
+        local_update_count = self._get_model_steps
+        last_training_minibatch_failed = False
+        dataset = self._get_static_data_shard()
+        dataset = self._feed(
+            dataset,
+            Mode.TRAINING,
+            None
+        )
+        dataset = dataset.batch(self._minibatch_size).prefetch(1)
+        self._timing.start_record_time("task_process")
+
+        task_type = elasticai_api_pb2.TRAINING
+        task_model_version = 1
+
+        for step, dataset_batch in enumerate(dataset):
+            if (
+                    last_training_minibatch_failed
+                    or local_update_count >= self._get_model_steps
+            ):
+                local_update_count = 0
+                train_with_local_model = False
+            else:
+                train_with_local_model = True
+
+            err_msg = self._safe_process_minibatch(
+                dataset_batch,
+                task_type,
+                task_model_version,
+                train_with_local_model,
+            )
+
+            local_update_count += 1
+            if err_msg:
+                last_training_minibatch_failed = True
+            else:
+                last_training_minibatch_failed = False
+                if local_update_count < self._get_model_steps:
+                    self._update_local_model()
+
+            self._timing.end_record_time("task_process")
+            self._timing.report_timing(reset=True)
+            self._timing.start_record_time("task_process")
+
+        del dataset
+
+        self._process_train_end_callback_task_if_needed()
+
     def _train_and_evaluate(self):
         """
         Train and evaluate the model on the worker
@@ -459,7 +546,15 @@ class Worker(object):
         """
         Fetches task from master with and performs training, evaluation
         or prediction.
+
+        [PS-SLIM]
+        Support static shard data, disabled the dynamic data shard service from Master.
+        Attention: just for when job type is training_only.
+        Now only support PS strategy.
         """
+        if self._job_type == JobType.TRAINING_ONLY:
+            self._train_only()
+
         if self._job_type == JobType.PREDICTION_ONLY:
             self._predict_only()
         elif self._job_type == JobType.EVALUATION_ONLY:
