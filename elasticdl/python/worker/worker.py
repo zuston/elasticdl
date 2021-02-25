@@ -329,6 +329,7 @@ class Worker(object):
         """
         worker_number = self._args.num_workers
         worker_id = int(self._args.worker_id)
+        worker_id = worker_id - 1
 
         self.logger.info("worker number: " + str(worker_number))
         self.logger.info("worker id    : " + str(worker_id))
@@ -363,13 +364,14 @@ class Worker(object):
         """
         local_update_count = self._get_model_steps
         last_training_minibatch_failed = False
-        dataset = self._get_static_data_shard()
-        dataset = self._feed(
-            dataset,
-            Mode.TRAINING,
-            None
-        )
-        dataset = dataset.batch(self._minibatch_size).prefetch(1)
+        dataset, _ = self._get_static_data_shard()
+        # Ignore handling data
+        # dataset = self._feed(
+        #     dataset,
+        #     Mode.TRAINING,
+        #     None
+        # )
+        # dataset = dataset.batch(self._minibatch_size).prefetch(1)
         self._timing.start_record_time("task_process")
 
         task_type = elasticai_api_pb2.TRAINING
